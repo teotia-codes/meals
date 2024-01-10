@@ -1,4 +1,5 @@
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+
 import 'package:meals/providers/meals_provider.dart';
 
 enum Filter {
@@ -8,46 +9,50 @@ enum Filter {
   vegan,
 }
 
-class FilterNotifier extends StateNotifier<Map<Filter, bool>> {
-  FilterNotifier()
+class FiltersNotifier extends StateNotifier<Map<Filter, bool>> {
+  FiltersNotifier()
       : super({
           Filter.glutenFree: false,
           Filter.lactoseFree: false,
           Filter.vegetarian: false,
-          Filter.vegan: false,
+          Filter.vegan: false
         });
 
-  void setFilters(Map<Filter, bool> chosenfilters) {
-    state = chosenfilters;
+  void setFilters(Map<Filter, bool> chosenFilters) {
+    state = chosenFilters;
   }
 
   void setFilter(Filter filter, bool isActive) {
-    // state[filter] = isActive // not allowed! => mutating state
-    state = {...state, filter: isActive};
+    // state[filter] = isActive; // not allowed! => mutating state
+    state = {
+      ...state,
+      filter: isActive,
+    };
   }
 }
 
 final filtersProvider =
-    StateNotifierProvider<FilterNotifier, Map<Filter, bool>>(
-        (ref) => FilterNotifier());
+    StateNotifierProvider<FiltersNotifier, Map<Filter, bool>>(
+  (ref) => FiltersNotifier(),
+);
 
-final filtermealprovider = Provider((ref) {
- final meals=ref.watch(mealsProvider);
- final activefilters = ref.watch(filtersProvider);
-  return meals.where((meal){
-      if(activefilters[Filter.glutenFree]! && !meal.isGlutenFree){
+final filteredMealsProvider = Provider((ref) {
+  final meals = ref.watch(mealsProvider);
+  final activeFilters = ref.watch(filtersProvider);
+
+  return meals.where((meal) {
+    if (activeFilters[Filter.glutenFree]! && !meal.isGlutenFree) {
       return false;
-      }
-      if(activefilters[Filter.lactoseFree]! && !meal.isLactoseFree){
+    }
+    if (activeFilters[Filter.lactoseFree]! && !meal.isLactoseFree) {
       return false;
-      }
-      if(activefilters[Filter.vegetarian]! && !meal.isVegetarian){
+    }
+    if (activeFilters[Filter.vegetarian]! && !meal.isVegetarian) {
       return false;
-      }
-      if(activefilters[Filter.vegan]! && !meal.isVegan){
+    }
+    if (activeFilters[Filter.vegan]! && !meal.isVegan) {
       return false;
-      }
-      return true;
-    },).toList();
+    }
+    return true;
+  }).toList();
 });
-
